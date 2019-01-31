@@ -72,12 +72,13 @@ int yescrypt_test(unsigned char *pdata, const unsigned char *ptarget, uint32_t n
 
 void yescrypt_regenhash(struct work *work)
 {
-        uint32_t data[20];
+        uint32_t data[28];
         uint32_t *nonce = (uint32_t *)(work->data + 76);
         uint32_t *ohash = (uint32_t *)(work->hash);
 
         be32enc_vect(data, (const uint32_t *)work->data, 19);
         data[19] = htobe32(*nonce);	
+        be32enc_vect(data + 20, (const uint32_t *)(work->data + 80), 8);
 
 		yescrypt_hash((unsigned char*)data, (unsigned char*)ohash);
         

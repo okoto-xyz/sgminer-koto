@@ -863,8 +863,8 @@ _clState *initCl(unsigned int gpu, char *name, size_t nameSize, algorithm_t *alg
       buf2size = 128 * 8 * 8 * cgpu->thread_concurrency;
       buf3size= 8 * 8 * 4 * cgpu->thread_concurrency;
       /* This is the input buffer. For yescrypt this is guaranteed to be
-      * 80 bytes only. */
-      readbufsize = 80;
+      * 112 bytes only. */
+      readbufsize = 112;
 
       applog(LOG_DEBUG, "yescrypt buffer sizes: %lu RW, %lu R", (unsigned long)bufsize, (unsigned long)readbufsize);
       // scrypt/n-scrypt

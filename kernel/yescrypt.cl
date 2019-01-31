@@ -46,16 +46,17 @@ __kernel void search(__global const uchar* restrict input, __global uint* restri
 
 
 	uint nonce = (get_global_id(0));
-	uint  data[20];
+	uint  data[28];
 	uint16 in;
 	uint8 state1, state2;
     uint8 sha256tokeep;
 
 	((uint16 *)data)[0] = ((__global const uint16 *)input)[0];
-	((uint4  *)data)[4] = ((__global const uint4  *)input)[4];
-	for (int i = 0; i<20; i++) { data[i] = SWAP32(data[i]); }
+	((uint8  *)data)[2] = ((__global const uint8  *)input)[2];
+	((uint4  *)data)[6] = ((__global const uint4  *)input)[6];
+	for (int i = 0; i<28; i++) { data[i] = SWAP32(data[i]); }
 	//	if (nonce == 10) { printf("data %08x %08x\n", data[0], data[1]); }
-	uint8 passwd = sha256_80(data, nonce);
+	uint8 passwd = sha256_112(data, nonce);
 	//pbkdf		
 	in.lo = pad1.lo ^ passwd;
 	in.hi = pad1.hi;
@@ -71,41 +72,73 @@ __kernel void search(__global const uchar* restrict input, __global uint* restri
 	for (int i = 0; i<8; i++)
 	{
 		uint16 result;
-		in = pad3;
+		in = pad3_112;
 		in.s0 = data[16];
 		in.s1 = data[17];
 		in.s2 = data[18];
 		in.s3 = nonce;
-		in.s4 = 4 * i + 1;
+		in.s4 = data[20];
+		in.s5 = data[21];
+		in.s6 = data[22];
+		in.s7 = data[23];
+		in.s8 = data[24];
+		in.s9 = data[25];
+		in.sa = data[26];
+		in.sb = data[27];
+		in.sc = 4 * i + 1;
 		in.lo = sha256_Transform(in, state1);
 		in.hi = pad4;
 		result.lo = swapvec(sha256_Transform(in, state2));
 		if (i == 0) sha256tokeep = result.lo;
-		in = pad3;
+		in = pad3_112;
 		in.s0 = data[16];
 		in.s1 = data[17];
 		in.s2 = data[18];
 		in.s3 = nonce;
-		in.s4 = 4 * i + 2;
+		in.s4 = data[20];
+		in.s5 = data[21];
+		in.s6 = data[22];
+		in.s7 = data[23];
+		in.s8 = data[24];
+		in.s9 = data[25];
+		in.sa = data[26];
+		in.sb = data[27];
+		in.sc = 4 * i + 2;
 		in.lo = sha256_Transform(in, state1);
 		in.hi = pad4;
 		result.hi = swapvec(sha256_Transform(in, state2));
 		Bdev[i].lo = as_ulong8(shuffle(result));
-		in = pad3;
+		in = pad3_112;
 		in.s0 = data[16];
 		in.s1 = data[17];
 		in.s2 = data[18];
 		in.s3 = nonce;
-		in.s4 = 4 * i + 3;
+		in.s4 = data[20];
+		in.s5 = data[21];
+		in.s6 = data[22];
+		in.s7 = data[23];
+		in.s8 = data[24];
+		in.s9 = data[25];
+		in.sa = data[26];
+		in.sb = data[27];
+		in.sc = 4 * i + 3;
 		in.lo = sha256_Transform(in, state1);
 		in.hi = pad4;
 		result.lo = swapvec(sha256_Transform(in, state2));
-		in = pad3;
+		in = pad3_112;
 		in.s0 = data[16];
 		in.s1 = data[17];
 		in.s2 = data[18];
 		in.s3 = nonce;
-		in.s4 = 4 * i + 4;
+		in.s4 = data[20];
+		in.s5 = data[21];
+		in.s6 = data[22];
+		in.s7 = data[23];
+		in.s8 = data[24];
+		in.s9 = data[25];
+		in.sa = data[26];
+		in.sb = data[27];
+		in.sc = 4 * i + 4;
 		in.lo = sha256_Transform(in, state1);
 		in.hi = pad4;
 		result.hi = swapvec(sha256_Transform(in, state2));
@@ -229,12 +262,20 @@ __kernel void search(__global const uchar* restrict input, __global uint* restri
 	state2 = sha256_Transform(in, H256);
 	in = ((uint16*)data)[0];
 	state1 = sha256_Transform(in, state1);
-	in = padsha80;
+	in = padsha112;
 	in.s0 = data[16];
 	in.s1 = data[17];
 	in.s2 = data[18];
 	in.s3 = get_global_id(0);
-	in.sf = 0x480;
+	in.s4 = data[20];
+	in.s5 = data[21];
+	in.s6 = data[22];
+	in.s7 = data[23];
+	in.s8 = data[24];
+	in.s9 = data[25];
+	in.sa = data[26];
+	in.sb = data[27];
+	in.sf = 0x580;
 	state1 = sha256_Transform(in, state1);
 	in.lo = state1;
 	in.hi = pad4;

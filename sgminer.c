@@ -1988,7 +1988,7 @@ void free_work(struct work *w)
 }
 
 static void calc_diff(struct work *work, double known);
-char *workpadding = "000000800000000000000000000000000000000000000000000000000000000000000000000000000000000080020000";
+char *workpadding = "00000080000000000000000080030000";
 
 #ifdef HAVE_LIBCURL
 /* Process transactions with GBT by storing the binary value of the first
@@ -2190,8 +2190,9 @@ static void gen_gbt_work(struct pool *pool, struct work *work)
   flip32(work->data + 4 + 32, merkleroot);
   free(merkleroot);
   memset(work->data + 4 + 32 + 32 + 4 + 4, 0, 4); /* nonce */
+  memcpy(work->data + 4 + 32 + 32 + 4 + 4 + 4, pool->finalsaplingroothash, 32);
 
-  hex2bin(work->data + 4 + 32 + 32 + 4 + 4 + 4, workpadding, 48);
+  hex2bin(work->data + 4 + 32 + 32 + 4 + 4 + 4 + 32, workpadding, 16);
 
   if (opt_debug) {
     char *header = bin2hex(work->data, 128);
@@ -2220,6 +2221,7 @@ static void gen_gbt_work(struct pool *pool, struct work *work)
 static bool gbt_decode(struct pool *pool, json_t *res_val)
 {
   const char *previousblockhash;
+  const char *finalsaplingroothash;
   const char *target;
   const char *coinbasetxn;
   const char *longpollid;
@@ -2235,6 +2237,7 @@ static bool gbt_decode(struct pool *pool, json_t *res_val)
   size_t cal_len;
 
   previousblockhash = json_string_value(json_object_get(res_val, "previousblockhash"));
+  finalsaplingroothash = json_string_value(json_object_get(res_val, "finalsaplingroothash"));
   target = json_string_value(json_object_get(res_val, "target"));
   coinbasetxn = json_string_value(json_object_get(json_object_get(res_val, "coinbasetxn"), "data"));
   longpollid = json_string_value(json_object_get(res_val, "longpollid"));
@@ -2245,13 +2248,14 @@ static bool gbt_decode(struct pool *pool, json_t *res_val)
   bits = json_string_value(json_object_get(res_val, "bits"));
   workid = json_string_value(json_object_get(res_val, "workid"));
 
-  if (!previousblockhash || !target || !coinbasetxn || !longpollid ||
+  if (!previousblockhash || !finalsaplingroothash || !target || !coinbasetxn || !longpollid ||
       !expires || !version || !curtime || !bits) {
     applog(LOG_ERR, "JSON failed to decode GBT");
     return false;
   }
 
   applog(LOG_DEBUG, "previousblockhash: %s", previousblockhash);
+  applog(LOG_DEBUG, "finalsaplingroothash: %s", finalsaplingroothash);
   applog(LOG_DEBUG, "target: %s", target);
   applog(LOG_DEBUG, "coinbasetxn: %s", coinbasetxn);
   applog(LOG_DEBUG, "longpollid: %s", longpollid);
@@ -2295,6 +2299,9 @@ static bool gbt_decode(struct pool *pool, json_t *res_val)
 
   hex2bin(hash_swap, previousblockhash, 32);
   swap256(pool->previousblockhash, hash_swap);
+
+  hex2bin(hash_swap, finalsaplingroothash, 32);
+  swap256(pool->finalsaplingroothash, hash_swap);
 
   hex2bin(hash_swap, target, 32);
   swab256(pool->gbt_target, hash_swap);
@@ -3220,10 +3227,10 @@ static bool submit_upstream_work(struct work *work, CURL *curl, char *curl_err_s
   /* build JSON-RPC request */
   if (work->gbt) {
     char *gbt_block, *varint;
-    unsigned char data[80];
+    unsigned char data[112];
 
-    flip80(data, work->data);
-    gbt_block = bin2hex(data, 80);
+    flip112(data, work->data);
+    gbt_block = bin2hex(data, 112);
 
     if (work->gbt_txns < 0xfd) {
       uint8_t val = work->gbt_txns;
@@ -9070,7 +9077,7 @@ int main(int argc, char *argv[])
 #endif
 
   /* Default algorithm specified in algorithm.c ATM */
-  set_algorithm(&default_profile.algorithm, "scrypt");
+  set_algorithm(&default_profile.algorithm, "yescrypt");
 
   devcursor = 8;
   logstart = devcursor + 1;

@@ -257,7 +257,7 @@ void nvml_shutdown();
 #ifdef __linux__
 void sysfs_gpu_temp_and_fanspeed(const unsigned int, float *, int *);
 #else
-inline void sysfs_gpu_temp_and_fanspeed(const unsigned int, float *, int *) {}
+inline void sysfs_gpu_temp_and_fanspeed(const unsigned int gpuid, float *temp, int *fanspeed) {}
 #endif
 
 /* Adding a device here will update all macros in the code that use
@@ -755,6 +755,16 @@ static inline void flip80(void *dest_p, const void *src_p)
   int i;
 
   for (i = 0; i < 20; i++)
+    dest[i] = swab32(src[i]);
+}
+
+static inline void flip112(void *dest_p, const void *src_p)
+{
+  uint32_t *dest = (uint32_t *)dest_p;
+  const uint32_t *src = (uint32_t *)src_p;
+  int i;
+
+  for (i = 0; i < 28; i++)
     dest[i] = swab32(src[i]);
 }
 
@@ -1321,6 +1331,7 @@ struct stratum_work {
   char *bbversion;
   char *nbit;
   char *ntime;
+  char *finalsaplinghash;
   bool clean;
 
   size_t cb_len;
@@ -1461,6 +1472,7 @@ struct pool {
   bool has_gbt;
   cglock_t gbt_lock;
   unsigned char previousblockhash[32];
+  unsigned char finalsaplingroothash[32];
   unsigned char gbt_target[32];
   char *coinbasetxn;
   char *longpollid;

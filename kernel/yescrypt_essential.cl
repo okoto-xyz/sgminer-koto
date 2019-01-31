@@ -104,12 +104,28 @@ static __constant uint16 pad3 =
 	0x00000000, 0x00000000, 0x00000000, 0x000004a0
 };
 
+static __constant uint16 pad3_112 =
+{
+	0x00000000, 0x00000000, 0x00000000, 0x00000000,
+	0x00000000, 0x00000000, 0x00000000, 0x00000000,
+	0x00000000, 0x00000000, 0x00000000, 0x00000000,
+	0x00000000, 0x80000000, 0x00000000, 0x000005a0
+};
+
 static __constant uint16 padsha80 =
 {
 	0x00000000, 0x00000000, 0x00000000, 0x00000000,
 	0x80000000, 0x00000000, 0x00000000, 0x00000000,
 	0x00000000, 0x00000000, 0x00000000, 0x00000000,
 	0x00000000, 0x00000000, 0x00000000, 0x00000280
+};
+
+static __constant uint16 padsha112 =
+{
+	0x00000000, 0x00000000, 0x00000000, 0x00000000,
+	0x00000000, 0x00000000, 0x00000000, 0x00000000,
+	0x00000000, 0x00000000, 0x00000000, 0x00000000,
+	0x80000000, 0x00000000, 0x00000000, 0x00000380
 };
 
 static __constant uint8 pad4 =
@@ -758,3 +774,22 @@ in.s3 = nonce;
 return(sha256_round2(in,buf));
 }
 
+static inline uint8 sha256_112(uint* data,uint nonce)
+{
+	uint8 buf = sha256_round1( ((uint16*)data)[0]);
+	uint16 in = padsha112;
+	in.s0 = data[16];
+	in.s1 = data[17];
+	in.s2 = data[18];
+	in.s3 = nonce;
+	in.s4 = data[20];
+	in.s5 = data[21];
+	in.s6 = data[22];
+	in.s7 = data[23];
+	in.s8 = data[24];
+	in.s9 = data[25];
+	in.sa = data[26];
+	in.sb = data[27];
+
+	return(sha256_round2(in,buf));
+}

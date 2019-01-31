@@ -356,5 +356,5 @@ yescrypt_bsty(const uint8_t * passwd, size_t passwdlen,
 void yescrypt_hash(const unsigned char *input, unsigned char *output)
 {
 
-   yescrypt_bsty((const uint8_t *)input, 80, (const uint8_t *) input, 80, 2048, 8, 1, (uint8_t *)output, 32);
+   yescrypt_bsty((const uint8_t *)input, 112, (const uint8_t *) input, 112, 2048, 8, 1, (uint8_t *)output, 32);
 }

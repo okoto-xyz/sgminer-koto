@@ -940,9 +940,9 @@ void load_default_profile()
 //apply default settings
 void apply_defaults()
 {
-  //if no algorithm specified, use scrypt as default
+  //if no algorithm specified, use yescrypt as default
   if (empty_string(default_profile.algorithm.name))
-    set_algorithm(&default_profile.algorithm, "scrypt");
+    set_algorithm(&default_profile.algorithm, "yescrypt");
 
   //by default all unless specified
   if(empty_string(default_profile.devices))
